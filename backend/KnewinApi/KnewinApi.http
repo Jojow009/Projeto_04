@@ -1,0 +1,6 @@
+@KnewinApi_HostAddress = http://localhost:5089
+
+GET {{KnewinApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
