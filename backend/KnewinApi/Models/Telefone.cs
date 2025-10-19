@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization; // Importação necessária
+
 namespace KnewinApi.Models
 {
     public class Telefone
@@ -8,11 +10,8 @@ namespace KnewinApi.Models
         // Relação com Fornecedor (Chave Estrangeira)
         public int FornecedorId { get; set; }
 
-        // **** CORREÇÃO AQUI ****
-        // Adicionado '?' para indicar que a propriedade de navegação é opcional
-        // Isso corrige o erro "The fornecedor field is required."
+        // Propriedade de Navegação corrigida para evitar ciclo
+        [JsonIgnore] 
         public Fornecedor? Fornecedor { get; set; }
     }
 }
-
-

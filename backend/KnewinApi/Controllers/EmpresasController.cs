@@ -86,16 +86,25 @@ namespace KnewinApi.Controllers
         }
 
         // DELETE: api/empresas/5
+        // DELETE: api/empresas/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteEmpresa(int id)
         {
+            // Verifica se algum fornecedor ESTÁ USANDO esta empresa
+            var temFornecedores = await _context.Fornecedores.AnyAsync(f => f.EmpresaId == id);
+
+            if (temFornecedores)
+            {
+                // Retorna um erro 400 (Bad Request)
+                return BadRequest("Não é possível apagar a empresa pois ela possui fornecedores cadastrados. Remova os fornecedores primeiro.");
+            }
+
             var empresa = await _context.Empresas.FindAsync(id);
             if (empresa == null)
             {
                 return NotFound();
             }
 
-            // Você pode adicionar lógica aqui para lidar com fornecedores órfãos se necessário
             _context.Empresas.Remove(empresa);
             await _context.SaveChangesAsync();
 

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 function Cadastro() {
   const [empresas, setEmpresas] = useState([]);
   const [formData, setFormData] = useState({
-    nome: '', // <-- DEVE SER MINÚSCULO
+    nome: '',
     cpfCnpj: '',
     rg: '',
     dataNascimento: '',
@@ -20,9 +20,9 @@ function Cadastro() {
   const isPessoaFisica = cpfCnpjLimpo.length === 11;
 
   useEffect(() => {
-    getEmpresas().then(response => {
-      setEmpresas(response.data);
-    }).catch(err => console.error("Erro ao buscar empresas:", err));
+    getEmpresas()
+      .then(response => setEmpresas(response.data))
+      .catch(err => console.error("Erro ao buscar empresas:", err));
   }, []);
 
   const handleChange = (e) => {
@@ -36,6 +36,19 @@ function Cadastro() {
     }
   };
 
+  const calcularIdade = (dataNasc) => {
+    const hoje = new Date();
+    const nascimento = new Date(dataNasc);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const m = hoje.getMonth() - nascimento.getMonth();
+    if (m < 0 || (m === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+    return idade;
+  };
+
+  // --- A FUNÇÃO QUE ESTAVA FALTANDO ---
+  // Função para lidar com o envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMensagem('');
@@ -44,49 +57,59 @@ function Cadastro() {
       ...formData,
       cpfCnpj: cpfCnpjLimpo,
       empresaId: parseInt(formData.empresaId),
-      telefones: telefones,
-      dataNascimento: formData.dataNascimento === "" ? null : formData.dataNascimento
+      telefones,
+      dataNascimento: formData.dataNascimento === '' ? null : formData.dataNascimento
     };
 
-    if (!isPessoaFisica) {
-        dadosCompletos.rg = null;
-        dadosCompletos.dataNascimento = null;
+    if (isPessoaFisica) {
+      if (!dadosCompletos.rg || !dadosCompletos.dataNascimento) {
+        setMensagem("Erro: Para pessoa física, RG e Data de Nascimento são obrigatórios.");
+        return; 
+      }
+
+      const empresaSelecionada = empresas.find(emp => emp.id === dadosCompletos.empresaId);
+      if (empresaSelecionada && empresaSelecionada.uf === 'PR') {
+        const idade = calcularIdade(dadosCompletos.dataNascimento);
+        if (idade < 18) {
+          setMensagem("Erro: Não é permitido cadastrar fornecedor pessoa física menor de idade para empresas do Paraná.");
+          return; 
+        }
+      }
+
+    } else { 
+      dadosCompletos.rg = null;
+      dadosCompletos.dataNascimento = null;
     }
 
     try {
       await createFornecedor(dadosCompletos);
       setMensagem('Fornecedor cadastrado com sucesso!');
-      setTimeout(() => navigate('/'), 2000); 
-
+      setTimeout(() => navigate('/'), 2000); // Vai para a listagem
     } catch (error) {
       if (error.response && error.response.data) {
         let errorMsg = error.response.data;
-        
-        if (typeof errorMsg === 'object' && errorMsg.errors) {
-          const errorKey = Object.keys(errorMsg.errors)[0]; 
-          errorMsg = errorMsg.errors[errorKey][0]; 
-        } 
-        else if (typeof errorMsg === 'object' && errorMsg.title) {
-          errorMsg = errorMsg.title; 
-        }
-        else if (typeof errorMsg === 'string') {
-          // 'errorMsg' já está correto
-        }
-        else {
-          errorMsg = "Erro de validação desconhecido. Verifique os campos.";
-        }
-        
-        setMensagem(`Erro: ${errorMsg}`); 
-
+         if (typeof errorMsg === 'object' && errorMsg.title) {
+           errorMsg = errorMsg.title;
+         } else if (typeof errorMsg !== 'string') {
+           errorMsg = errorMsg.toString();
+         }
+        setMensagem(`Erro: ${errorMsg}`);
       } else {
         setMensagem('Erro de rede ou servidor indisponível.');
       }
     }
   };
+  // --- FIM DA FUNÇÃO ---
 
   return (
     <div>
-      <h2>Cadastro de Fornecedor</h2>
+      {/* Botão Voltar */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        <h2>Cadastro de Fornecedor</h2>
+        <button onClick={() => navigate(-1)} type="button">Voltar</button>
+      </div>
+
+      {/* O 'onSubmit' aqui agora vai funcionar */}
       <form onSubmit={handleSubmit}>
         <select name="empresaId" value={formData.empresaId} onChange={handleChange} required>
           <option value="">Selecione a Empresa</option>
@@ -96,12 +119,10 @@ function Cadastro() {
         </select>
         <br />
 
-        {/* **** CORREÇÃO PROVÁVEL ESTÁ AQUI **** */}
-        {/* Garanta que o 'name' é "nome" (minúsculo) */}
         <input name="nome" value={formData.nome} onChange={handleChange} placeholder="Nome" required />
         <br />
 
-        <input name="cpfCnpj" value={formData.cpfCnpj} onChange={handleChange} placeholder="CPF ou CNPJ (com ou sem máscara)" required />
+        <input name="cpfCnpj" value={formData.cpfCnpj} onChange={handleChange} placeholder="CPF ou CNPJ" required />
         <br />
 
         {isPessoaFisica && (
@@ -115,11 +136,11 @@ function Cadastro() {
         )}
 
         <div>
-          <input 
-            type="text" 
-            value={telefoneAtual} 
-            onChange={(e) => setTelefoneAtual(e.target.value)} 
-            placeholder="Telefone" 
+          <input
+            type="text"
+            value={telefoneAtual}
+            onChange={(e) => setTelefoneAtual(e.target.value)}
+            placeholder="Telefone"
           />
           <button type="button" onClick={adicionarTelefone}>Adicionar Telefone</button>
           <ul>
@@ -134,4 +155,5 @@ function Cadastro() {
   );
 }
 
+// A linha de export no final
 export default Cadastro;

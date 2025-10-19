@@ -1,35 +1,39 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import './index.css'; // Mudei de App.css para index.css (como corrigimos)
+
+// 1. Importe suas páginas
+import Listagem from './pages/Listagem';
+import Cadastro from './pages/Cadastro';
+import CadastroEmpresa from './pages/CadastroEmpresa';
+import ListagemEmpresas from './pages/ListagemEmpresas'; // <-- ADICIONE
 
 function App() {
-  const [count, setCount] = useState(0)
+  return (
+    <Router>
+      <div className="App">
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+        {/* 2. SEU NOVO MENU DE NAVEGAÇÃO */}
+        <nav className="navbar" style={{ padding: '10px', background: '#eee' }}>
+          <Link to="/" style={{ marginRight: '10px' }}>Listagem de Fornecedores</Link>
+          <Link to="/empresas" style={{ marginRight: '10px' }}>Empresas e Fornecedores</Link> {/* <-- ADICIONE */}
+          <Link to="/cadastrar" style={{ marginRight: '10px' }}>Cadastrar Novo Fornecedor</Link>
+          <Link to="/cadastrar-empresa">Cadastrar Nova Empresa</Link> 
+        </nav>
+
+        {/* 3. ONDE AS PÁGINAS VÃO CARREGAR */}
+        <main className="content" style={{ padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<Listagem />} />
+            <Route path="/empresas" element={<ListagemEmpresas />} /> {/* <-- ADICIONE */}
+            <Route path="/cadastrar" element={<Cadastro />} />
+            <Route path="/cadastrar-empresa" element={<CadastroEmpresa />} />
+          </Routes>
+        </main>
+
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;

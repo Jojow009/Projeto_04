@@ -5,8 +5,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // --- Configuração dos Serviços ---
 
+
+
 // 1. Adiciona os serviços de API (Controllers)
-builder.Services.AddControllers();
+// Adiciona os controllers E configura o serializador JSON
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // Esta linha conserta o ERRO 500 (o loop infinito)
+    options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+});
 
 // 2. Configura o DbContext para usar Postgres com a sua Connection String
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -49,6 +56,8 @@ app.UseAuthorization();
 
 // 5. Mapeia os seus Controllers (EmpresasController, FornecedoresController, etc.)
 app.MapControllers();
+
+
 
 // 6. Inicia a aplicação
 app.Run();

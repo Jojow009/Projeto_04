@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using KnewinApi.Models; // Garante que ele pode ver seus Modelos (Empresa, Fornecedor, etc)
-using System; // Necessário para o DateTime
+using KnewinApi.Models; 
+using System;
+using System.Linq; // <-- Adicione este using para o .Where()
 
 namespace KnewinApi.Data
 {
@@ -10,32 +11,38 @@ namespace KnewinApi.Data
         {
         }
 
-        // Mapeia suas classes para tabelas no banco de dados
         public DbSet<Empresa> Empresas { get; set; }
         public DbSet<Fornecedor> Fornecedores { get; set; }
         public DbSet<Telefone> Telefones { get; set; }
 
-        // Este método é chamado pelo Entity Framework quando ele está criando o modelo
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // --- 1. CONFIGURAÇÃO DAS RELAÇÕES ---
+            // --- 1. CONFIGURAÇÃO DOS TIPOS DATETIME ---
+            // O loop foreach só deve fazer isso
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                var dateTimeProps = entityType.GetProperties()
+                    .Where(p => p.ClrType == typeof(DateTime) || p.ClrType == typeof(DateTime?));
 
-            // Configura a relação 1-para-N (Empresa -> Fornecedores)
+                foreach (var prop in dateTimeProps)
+                {
+                    prop.SetColumnType("timestamp with time zone");
+                }
+            }
+
+            // --- 2. CONFIGURAÇÃO DAS RELAÇÕES (Fora do loop) ---
             modelBuilder.Entity<Empresa>()
                 .HasMany(e => e.Fornecedores)    // Uma Empresa tem muitos Fornecedores
                 .WithOne(f => f.Empresa)        // Um Fornecedor tem uma Empresa
                 .HasForeignKey(f => f.EmpresaId); // A chave estrangeira está em Fornecedor
 
-            // Configura a relação 1-para-N (Fornecedor -> Telefones)
             modelBuilder.Entity<Fornecedor>()
                 .HasMany(f => f.Telefones)      // Um Fornecedor tem muitos Telefones
                 .WithOne(t => t.Fornecedor)     // Um Telefone pertence a um Fornecedor
                 .HasForeignKey(t => t.FornecedorId); // A chave estrangeira está em Telefone
 
-            
-            // --- 2. DATA SEEDING (EMPRESAS PRÉ-CADASTRADAS) ---
-            // Adiciona empresas no banco de dados assim que a migração é aplicada
-            
+
+            // --- 3. DATA SEEDING (Fora do loop) ---
             modelBuilder.Entity<Empresa>().HasData(
                 new Empresa
                 {
@@ -53,7 +60,7 @@ namespace KnewinApi.Data
                 }
             );
 
-            // Chama o método base no final
+            // --- 4. CHAMADA BASE (No final de tudo) ---
             base.OnModelCreating(modelBuilder);
         }
     }

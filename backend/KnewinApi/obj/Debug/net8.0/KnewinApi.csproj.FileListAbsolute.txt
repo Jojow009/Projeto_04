@@ -133,3 +133,4 @@ C:\Users\eu\Documents\Projeto\TesteKnewin\backend\KnewinApi\obj\Debug\net8.0\ref
 C:\Users\eu\Documents\Projeto\TesteKnewin\backend\KnewinApi\obj\Debug\net8.0\KnewinApi.pdb
 C:\Users\eu\Documents\Projeto\TesteKnewin\backend\KnewinApi\obj\Debug\net8.0\KnewinApi.genruntimeconfig.cache
 C:\Users\eu\Documents\Projeto\TesteKnewin\backend\KnewinApi\obj\Debug\net8.0\ref\KnewinApi.dll
+C:\Users\eu\Documents\Projeto\TesteKnewin\backend\KnewinApi\obj\Debug\net8.0\KnewinApi.sourcelink.json

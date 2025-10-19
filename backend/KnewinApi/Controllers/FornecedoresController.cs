@@ -33,7 +33,8 @@ namespace KnewinApi.Controllers
 
             if (!string.IsNullOrEmpty(nome))
             {
-                query = query.Where(f => f.Nome.Contains(nome));
+                // ToLower para busca case-insensitive (pode depender da configuração do banco)
+                query = query.Where(f => f.Nome.ToLower().Contains(nome.ToLower())); 
             }
             if (!string.IsNullOrEmpty(cpfCnpj))
             {
@@ -42,6 +43,7 @@ namespace KnewinApi.Controllers
             }
             if (dataCadastro.HasValue)
             {
+                // dataCadastro é um filtro de data, compara apenas a parte da data (sem hora)
                 query = query.Where(f => f.DataCadastro.Date == dataCadastro.Value.Date);
             }
 
@@ -50,7 +52,7 @@ namespace KnewinApi.Controllers
         }
 
         // POST: api/fornecedores
-        // Implementa as Regras 2 (Paraná) e 3 (RG/Nascimento)
+        // Implementa as Regras 2 (Paraná) e 3 (RG/Nascimento) e trata o UTC
         [HttpPost]
         public async Task<IActionResult> PostFornecedor([FromBody] Fornecedor fornecedor)
         {
@@ -67,7 +69,19 @@ namespace KnewinApi.Controllers
             }
 
             // O front-end já deve mandar o CpfCnpj limpo (sem máscara)
-            bool isPessoaFisica = fornecedor.CpfCnpj.Length == 11;
+            bool isPessoaFisica = fornecedor.CpfCnpj?.Length == 11;
+
+            // Tratamento de Datas de Entrada: Garantindo UTC antes de salvar
+            // Se o DataNascimento veio com data, garante que o Kind seja Utc.
+            if (fornecedor.DataNascimento.HasValue)
+            {
+                // Garante que o Kind seja Utc, assumindo que a data enviada pelo cliente é a data 'sem timezone' que ele digitou
+                // Nota: Para datas de nascimento, muitas vezes o Kind é irrelevante, mas o SpecifyKind(..., Utc) garante consistência no banco.
+                fornecedor.DataNascimento = DateTime.SpecifyKind(
+                    fornecedor.DataNascimento.Value,
+                    DateTimeKind.Utc
+                );
+            }
 
             // Regra 3: Se for pessoa física, RG e Data de Nascimento são obrigatórios
             if (isPessoaFisica)
@@ -82,9 +96,14 @@ namespace KnewinApi.Controllers
                 {
                     // Calcula a idade
                     var hoje = DateTime.Today;
-                    var idade = hoje.Year - fornecedor.DataNascimento.Value.Year;
+                    // Usa a data do Fornecedor para o cálculo, que já foi tratada para HasValue acima.
+                    var dataNascimento = fornecedor.DataNascimento.Value;
+
+                    var idade = hoje.Year - dataNascimento.Year;
+
                     // Ajuste para quem ainda não fez aniversário no ano
-                    if (fornecedor.DataNascimento.Value.Date > hoje.AddYears(-idade))
+                    // Compara a data de hoje sem o ano da idade subtraído, com a data de nascimento.
+                    if (dataNascimento.Date > hoje.AddYears(-idade))
                     {
                         idade--;
                     }
@@ -101,15 +120,37 @@ namespace KnewinApi.Controllers
                 fornecedor.DataNascimento = null;
             }
 
-            // Seta a data de cadastro
-            fornecedor.DataCadastro = DateTime.UtcNow;
+            // Seta a data de cadastro com a hora atual, sempre em UTC
+            fornecedor.DataCadastro = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Utc);
 
             _context.Fornecedores.Add(fornecedor);
             await _context.SaveChangesAsync();
 
-            // Retorna um status 201 Created com os dados do novo fornecedor
-            // (Mudança: Retornando apenas "Ok" para evitar erros de rota no CreatedAtAction)
+            // Retorna o fornecedor recém-criado
             return Ok(fornecedor);
+        }
+        // DELETE: api/fornecedores/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFornecedor(int id)
+        {
+            var fornecedor = await _context.Fornecedores
+                .Include(f => f.Telefones) // Precisamos incluir os telefones para apagá-los
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (fornecedor == null)
+            {
+                return NotFound();
+            }
+
+            // 1. Remove os telefones associados (se houver)
+            _context.Telefones.RemoveRange(fornecedor.Telefones);
+
+            // 2. Remove o fornecedor
+            _context.Fornecedores.Remove(fornecedor);
+
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Sucesso, sem conteúdo para retornar
         }
     }
 }
