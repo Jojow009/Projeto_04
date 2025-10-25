@@ -4,7 +4,7 @@ namespace KnewinApi.Models
 {
     public class Empresa
     {
-        public int Id { get; set; } // Chave Primária
+        public int Id { get; set; } 
         
         // Propriedades exigidas pelo teste
         public string UF { get; set; }

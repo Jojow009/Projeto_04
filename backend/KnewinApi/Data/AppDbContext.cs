@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using KnewinApi.Models; 
 using System;
-using System.Linq; // <-- Adicione este using para o .Where()
+using System.Linq; 
 
 namespace KnewinApi.Data
 {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace KnewinApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] // Define a rota como /api/telefones
+    [Route("api/[controller]")] 
     public class TelefonesController : ControllerBase
     {
         private readonly AppDbContext _context;

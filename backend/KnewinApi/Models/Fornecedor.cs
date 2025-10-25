@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization; // Importação necessária
+using System.Text.Json.Serialization; 
 
 namespace KnewinApi.Models
 {

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\KnewinApi.csproj": {}
+    "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\KnewinApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\KnewinApi.csproj": {
+    "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\KnewinApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\KnewinApi.csproj",
+        "projectUniqueName": "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\KnewinApi.csproj",
         "projectName": "KnewinApi",
-        "projectPath": "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\KnewinApi.csproj",
+        "projectPath": "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\KnewinApi.csproj",
         "packagesPath": "C:\\Users\\eu\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\obj\\",
+        "outputPath": "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\eu\\AppData\\Roaming\\NuGet\\NuGet.Config"

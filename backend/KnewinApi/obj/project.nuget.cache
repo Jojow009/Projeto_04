@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "dmHxNvBfWlUTh/TosY2at7zlPtbPim17d9PSqebU9gQ+tPVhreDxdS4Ax/NUqn695bRTgruCtgKCsN/uEVi93w==",
+  "dgSpecHash": "9P87x/L2eih77Z62lqiY6m/xuwcHpkOCI3FYkX6gSE4yQ5GK48ej6WqsIggtEE8W34fgp5l0ohUs3zZjzb2qrQ==",
   "success": true,
-  "projectFilePath": "C:\\Users\\eu\\Documents\\Projeto\\TesteKnewin\\backend\\KnewinApi\\KnewinApi.csproj",
+  "projectFilePath": "C:\\Users\\eu\\Documents\\Projeto_04\\backend\\KnewinApi\\KnewinApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\eu\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\eu\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.21\\microsoft.aspnetcore.openapi.8.0.21.nupkg.sha512",

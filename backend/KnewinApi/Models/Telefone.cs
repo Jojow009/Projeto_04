@@ -1,10 +1,10 @@
-using System.Text.Json.Serialization; // Importação necessária
+using System.Text.Json.Serialization; 
 
 namespace KnewinApi.Models
 {
     public class Telefone
     {
-        public int Id { get; set; } // Chave Primária
+        public int Id { get; set; } 
         public string Numero { get; set; }
 
         // Relação com Fornecedor (Chave Estrangeira)
