@@ -9,6 +9,18 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- MUDANÇA (Construção Manual da Connection String) ---
+// Pega as variáveis de ambiente que o Render fornece
+var dbHost = Environment.GetEnvironmentVariable("PGHOST");
+var dbUser = Environment.GetEnvironmentVariable("PGUSER");
+var dbPass = Environment.GetEnvironmentVariable("PGPASSWORD");
+var dbName = Environment.GetEnvironmentVariable("PGDATABASE");
+
+// Constrói a string de conexão no formato correto
+var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPass};";
+// --- FIM DA MUDANÇA ---
+
+
 // --- 1. DEFINIÇÃO DA POLÍTICA DE CORS ---
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
@@ -28,8 +40,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
+// --- MUDANÇA (Usa a nossa string manual) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(connectionString)); // <-- Usa a string que construímos
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -67,7 +80,7 @@ using (var scope = app.Services.CreateScope())
 // --- FIM DO BLOCO ---
 
 
-// --- 4. CONFIGURAÇÃO DO PIPELINE (ORDEM CORRIGIDA) ---
+// --- 4. CONFIGURAÇÃO DO PIPELINE ---
 app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
@@ -76,15 +89,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// --- MUDANÇA ---
-// 1. Aplica a política de CORS PRIMEIRO
 app.UseCors(myAllowSpecificOrigins);
-
-// 2. Redireciona para HTTPS DEPOIS
 app.UseHttpsRedirection();
-// --- FIM DA MUDANÇA ---
-
 // app.UseAuthorization(); // (Corretamente removido)
 
 app.MapControllers();
 app.Run();
+
