@@ -1,0 +1,11 @@
+# Arquivos e pastas de build
+[Bb]in/
+[Oo]bj/
+
+# Configurações de usuário
+*.user
+*.suo
+
+# Outros
+.vs/
+*.sln.docstatesgit rm -r --cached .
