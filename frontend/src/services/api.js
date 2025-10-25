@@ -2,7 +2,7 @@ import axios from 'axios';
 
 
 const api = axios.create({
-  baseURL: 'https://projeto-04.onrender.com/api', // <-- CORREÇÃO
+  baseURL: 'https://projeto-04.onrender.com/api', 
 });
 
 // Empresas
