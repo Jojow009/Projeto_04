@@ -11,7 +11,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // --- MUDANÇA (Conversor de Conexão Robusto) ---
-// 1. Pega a string de conexão (pode ser do Env Var do Render ou do appsettings.json)
+// 1. Pega a string de conexão (VEM DO RENDER ENV VAR)
 var connectionStringUrl = builder.Configuration.GetConnectionString("DefaultConnection");
 string connectionString;
 
@@ -31,7 +31,8 @@ if (!string.IsNullOrEmpty(connectionStringUrl) && connectionStringUrl.StartsWith
 }
 else
 {
-    // É a string local (Host=...) ou está vazia, usamos como está
+    // Se não encontrou a variável do Render, vai usar a string local (Host=...) do appsettings.json
+    // Se essa também falhar (como agora), 'connectionString' fica null e o app falha.
     connectionString = connectionStringUrl;
 }
 // --- FIM DA MUDANÇA ---
@@ -111,4 +112,3 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 app.Run();
-
