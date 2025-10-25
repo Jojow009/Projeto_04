@@ -4,10 +4,8 @@ using Microsoft.AspNetCore.HttpOverrides; // Para o ForwardedHeaders
 using System.Text.Json.Serialization;  // Para a correção do loop do JSON
 using Microsoft.Extensions.Logging;     // Para o ILogger
 
-// --- MUDANÇA (Correção do Fuso Horário do Postgres) ---
-// Isso corrige uma falha comum de "timestamp" do Npgsql no .NET 6+
+// Correção do Fuso Horário do Postgres
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-// --- FIM DA MUDANÇA ---
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,33 +44,30 @@ builder.Services.AddSwaggerGen();
 // --- 3. CONSTRUÇÃO DO APP ---
 var app = builder.Build();
 
-// --- NOVO BLOCO: APLICAR MIGRATIONS NA INICIALIZAÇÃO ---
+// --- APLICA MIGRATIONS NA INICIALIZAÇÃO ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var dbContext = services.GetRequiredService<AppDbContext>();
-        // Aplica qualquer migration pendente
         await dbContext.Database.MigrateAsync();
     }
     catch (Exception ex)
     {
-        // Se falhar, registra no log (você pode ver no log do Render)
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ocorreu um erro ao aplicar as migrations.");
 
-        // Log explícito no Console
         Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         Console.WriteLine("!!!   ERRO AO EXECUTAR DBContext.Database.MigrateAsync()   !!!");
         Console.WriteLine($"!!!   ERRO: {ex.Message}   !!!");
         Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     }
 }
-// --- FIM DO NOVO BLOCO ---
+// --- FIM DO BLOCO ---
 
 
-// --- 4. CONFIGURAÇÃO DO PIPELINE ---
+// --- 4. CONFIGURAÇÃO DO PIPELINE (ORDEM CORRIGIDA) ---
 app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
@@ -81,8 +76,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// --- MUDANÇA ---
+// 1. Aplica a política de CORS PRIMEIRO
 app.UseCors(myAllowSpecificOrigins);
+
+// 2. Redireciona para HTTPS DEPOIS
+app.UseHttpsRedirection();
+// --- FIM DA MUDANÇA ---
 
 // app.UseAuthorization(); // (Corretamente removido)
 
