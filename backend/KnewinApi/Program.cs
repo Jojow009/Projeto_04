@@ -1,10 +1,13 @@
-
 using KnewinApi.Data;                 // Para o AppDbContext
 using Microsoft.EntityFrameworkCore;  // Para o UseNpgsql
 using Microsoft.AspNetCore.HttpOverrides; // Para o ForwardedHeaders
 using System.Text.Json.Serialization;  // Para a correção do loop do JSON
-// Adicionado para ILogger
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;     // Para o ILogger
+
+// --- MUDANÇA (Correção do Fuso Horário do Postgres) ---
+// Isso corrige uma falha comum de "timestamp" do Npgsql no .NET 6+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+// --- FIM DA MUDANÇA ---
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,8 +47,6 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 // --- NOVO BLOCO: APLICAR MIGRATIONS NA INICIALIZAÇÃO ---
-// Isso garante que o banco de dados na nuvem seja criado e atualizado
-// ANTES que a API comece a rodar.
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -61,13 +62,11 @@ using (var scope = app.Services.CreateScope())
         var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "Ocorreu um erro ao aplicar as migrations.");
 
-        // --- MUDANÇA: Adiciona log explícito no Console ---
-        // Isso é para garantir que vejamos o erro no log do Render
+        // Log explícito no Console
         Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         Console.WriteLine("!!!   ERRO AO EXECUTAR DBContext.Database.MigrateAsync()   !!!");
         Console.WriteLine($"!!!   ERRO: {ex.Message}   !!!");
         Console.WriteLine("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        // --- FIM DA MUDANÇA ---
     }
 }
 // --- FIM DO NOVO BLOCO ---
