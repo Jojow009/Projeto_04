@@ -1,27 +1,22 @@
-using KnewinApi.Data;                 // Para o AppDbContext
-using Microsoft.EntityFrameworkCore;  // Para o UseNpgsql
-using Microsoft.AspNetCore.HttpOverrides; // Para o ForwardedHeaders
-using System.Text.Json.Serialization;  // Para a correção do loop do JSON
-using Microsoft.Extensions.Logging;     // Para o ILogger
+using KnewinApi.Data;                 
+using Microsoft.EntityFrameworkCore;  
+using Microsoft.AspNetCore.HttpOverrides; 
+using System.Text.Json.Serialization;  
+using Microsoft.Extensions.Logging;     
 
-// Correção do Fuso Horário do Postgres
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- MUDANÇA (Construção Manual da Connection String) ---
-// Pega as variáveis de ambiente que o Render fornece
+// --- CONSTRUÇÃO MANUAL DA CONNECTION STRING ---
 var dbHost = Environment.GetEnvironmentVariable("PGHOST");
 var dbUser = Environment.GetEnvironmentVariable("PGUSER");
 var dbPass = Environment.GetEnvironmentVariable("PGPASSWORD");
 var dbName = Environment.GetEnvironmentVariable("PGDATABASE");
-
-// Constrói a string de conexão no formato correto
 var connectionString = $"Host={dbHost};Database={dbName};Username={dbUser};Password={dbPass};";
-// --- FIM DA MUDANÇA ---
+// --- FIM ---
 
-
-// --- 1. DEFINIÇÃO DA POLÍTICA DE CORS ---
+// --- 1. POLÍTICA DE CORS ---
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
@@ -34,15 +29,14 @@ builder.Services.AddCors(options =>
                       });
 });
 
-// --- 2. CONFIGURAÇÃO DOS SERVIÇOS ---
+// --- 2. SERVIÇOS ---
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
-// --- MUDANÇA (Usa a nossa string manual) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString)); // <-- Usa a string que construímos
+    options.UseNpgsql(connectionString)); // <-- Usa a string manual
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -57,14 +51,18 @@ builder.Services.AddSwaggerGen();
 // --- 3. CONSTRUÇÃO DO APP ---
 var app = builder.Build();
 
-// --- APLICA MIGRATIONS NA INICIALIZAÇÃO ---
+// --- APLICA MIGRATIONS ---
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     try
     {
         var dbContext = services.GetRequiredService<AppDbContext>();
-        await dbContext.Database.MigrateAsync();
+        await dbContext.Database.MigrateAsync(); 
+        // Log de Sucesso (para vermos no Render)
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Migrations aplicadas com SUCESSO.");
+        Console.WriteLine(">>> Migrations aplicadas com SUCESSO. <<<");
     }
     catch (Exception ex)
     {
@@ -80,7 +78,7 @@ using (var scope = app.Services.CreateScope())
 // --- FIM DO BLOCO ---
 
 
-// --- 4. CONFIGURAÇÃO DO PIPELINE ---
+// --- 4. PIPELINE (ORDEM CORRIGIDA) ---
 app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
@@ -89,8 +87,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors(myAllowSpecificOrigins);
-app.UseHttpsRedirection();
+app.UseCors(myAllowSpecificOrigins); // <-- CORS ANTES
+app.UseHttpsRedirection();           // <-- HTTPS DEPOIS
+
 // app.UseAuthorization(); // (Corretamente removido)
 
 app.MapControllers();
