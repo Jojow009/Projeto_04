@@ -1,13 +1,12 @@
 using KnewinApi.Data;                 // Para o AppDbContext
 using Microsoft.EntityFrameworkCore;  // Para o UseNpgsql
-using Microsoft.AspNetCore.HttpOverrides; // Para o ForwardedHeaders (correção do Render)
+using Microsoft.AspNetCore.HttpOverrides; // Para o ForwardedHeaders
 using System.Text.Json.Serialization;  // Para a correção do loop do JSON
 
 var builder = WebApplication.CreateBuilder(args);
 
 // --- 1. DEFINIÇÃO DA POLÍTICA DE CORS ---
 var myAllowSpecificOrigins = "_myAllowSpecificOrigins";
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(name: myAllowSpecificOrigins,
@@ -41,7 +40,28 @@ builder.Services.AddSwaggerGen();
 // --- 3. CONSTRUÇÃO DO APP ---
 var app = builder.Build();
 
-// --- 4. CONFIGURAÇÃO DO PIPELINE (A ORDEM É MUITO IMPORTANTE) ---
+// --- NOVO BLOCO: APLICAR MIGRATIONS NA INICIALIZAÇÃO ---
+// Isso garante que o banco de dados na nuvem seja criado e atualizado
+// ANTES que a API comece a rodar.
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    try
+    {
+        // Aplica qualquer migration pendente
+        await dbContext.Database.MigrateAsync();
+    }
+    catch (Exception ex)
+    {
+        // Se falhar, registra no log (você pode ver no log do Render)
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocorreu um erro ao aplicar as migrations.");
+    }
+}
+// --- FIM DO NOVO BLOCO ---
+
+
+// --- 4. CONFIGURAÇÃO DO PIPELINE ---
 app.UseForwardedHeaders();
 
 if (app.Environment.IsDevelopment())
@@ -53,11 +73,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors(myAllowSpecificOrigins);
 
-// --- LINHA REMOVIDA ---
-// app.UseAuthorization(); // <-- Esta linha foi removida.
+// app.UseAuthorization(); // (Corretamente removido)
 
-// Mapeia os seus Controllers (EmpresasController, etc.)
 app.MapControllers();
-
-// Inicia a aplicação
 app.Run();
