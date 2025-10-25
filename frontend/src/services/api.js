@@ -1,16 +1,18 @@
-
 import axios from 'axios';
 
+
 const api = axios.create({
-  baseURL: 'https://projeto04.onrender.com/api', // Confira sua porta
+  baseURL: 'https://projeto-04.onrender.com/api', // <-- CORREÇÃO
 });
 
 // Empresas
-export const getEmpresas = () => api.get('/empresas');
-export const createEmpresa = (dados) => api.post('/empresas', dados);
-export const deleteEmpresa = (id) => api.delete(`/empresas/${id}`); // <-- ADICIONE
+// CORREÇÃO: Removi a barra '/' do início.
+// Agora 'empresas' será combinado com a baseURL para formar '/api/empresas'
+export const getEmpresas = () => api.get('empresas');
+export const createEmpresa = (dados) => api.post('empresas', dados);
+export const deleteEmpresa = (id) => api.delete(`empresas/${id}`);
 
 // Fornecedores
-export const getFornecedores = (params) => api.get('/fornecedores', { params });
-export const createFornecedor = (dados) => api.post('/fornecedores', dados);
-export const deleteFornecedor = (id) => api.delete(`/fornecedores/${id}`); // <-- ADICIONE
+export const getFornecedores = (params) => api.get('fornecedores', { params });
+export const createFornecedor = (dados) => api.post('fornecedores', dados);
+export const deleteFornecedor = (id) => api.delete(`fornecedores/${id}`);

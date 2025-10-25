@@ -47,7 +47,6 @@ function Cadastro() {
     return idade;
   };
 
-  // --- A FUNÇÃO QUE ESTAVA FALTANDO ---
   // Função para lidar com o envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -99,7 +98,6 @@ function Cadastro() {
       }
     }
   };
-  // --- FIM DA FUNÇÃO ---
 
   return (
     <div>
@@ -109,7 +107,6 @@ function Cadastro() {
         <button onClick={() => navigate(-1)} type="button">Voltar</button>
       </div>
 
-      {/* O 'onSubmit' aqui agora vai funcionar */}
       <form onSubmit={handleSubmit}>
         <select name="empresaId" value={formData.empresaId} onChange={handleChange} required>
           <option value="">Selecione a Empresa</option>
@@ -155,5 +152,4 @@ function Cadastro() {
   );
 }
 
-// A linha de export no final
 export default Cadastro;

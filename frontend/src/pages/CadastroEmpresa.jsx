@@ -20,7 +20,6 @@ function CadastroEmpresa() {
     setFormData({ ...formData, [name]: value });
   };
 
-  // --- A FUNÇÃO QUE ESTAVA FALTANDO ---
   // Função para lidar com o envio do formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,13 +38,12 @@ function CadastroEmpresa() {
     try {
       await createEmpresa(dadosEmpresa);
       setMensagem('Empresa cadastrada com sucesso! Redirecionando...');
-      setTimeout(() => navigate('/empresas'), 2000); // Mudei para ir para a lista de empresas
+      setTimeout(() => navigate('/empresas'), 2000); // Vai para a lista de empresas
     } catch (error) {
       const errorMsg = error.response?.data?.title || error.response?.data || 'Erro ao cadastrar empresa.';
       setMensagem(`Erro: ${errorMsg}`);
     }
   };
-  // --- FIM DA FUNÇÃO ---
 
   return (
     <div>
@@ -55,7 +53,6 @@ function CadastroEmpresa() {
         <button onClick={() => navigate(-1)} type="button">Voltar</button>
       </div>
 
-      {/* O 'onSubmit' aqui agora vai funcionar */}
       <form onSubmit={handleSubmit}> 
         <div>
           <label>Nome Fantasia:</label>
@@ -76,5 +73,4 @@ function CadastroEmpresa() {
   );
 }
 
-// A linha de export no final
 export default CadastroEmpresa;
