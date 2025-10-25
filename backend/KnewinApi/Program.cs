@@ -3,26 +3,22 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.HttpOverrides;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
-using System; 
+using System; // Para a classe Uri
 
 // Correção do Fuso Horário do Postgres
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- MUDANÇA (Conversor de Connection String) ---
-// 1. Pega a string de conexão "Internal Database URL" que VEM do Render
+// --- MUDANÇA (Conversor de Conexão Robusto) ---
+// 1. Pega a string de conexão (pode ser do Env Var do Render ou do appsettings.json)
 var connectionStringUrl = builder.Configuration.GetConnectionString("DefaultConnection");
 string connectionString;
 
-if (string.IsNullOrEmpty(connectionStringUrl))
+// 2. Verifica se é uma URL (do Render) ou uma string normal (local)
+if (!string.IsNullOrEmpty(connectionStringUrl) && connectionStringUrl.StartsWith("postgresql://"))
 {
-    // Se não houver, usa o localhost (para seus testes locais)
-    connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-}
-else
-{
-    // 2. Converte a URL (postgresql://user:pass@host:port/db) para o formato Host=...
+    // É a URL do Render, vamos converter
     var databaseUri = new Uri(connectionStringUrl);
     var userInfo = databaseUri.UserInfo.Split(':');
     var dbUser = userInfo[0];
@@ -32,6 +28,11 @@ else
     var dbName = databaseUri.LocalPath.TrimStart('/');
 
     connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};";
+}
+else
+{
+    // É a string local (Host=...) ou está vazia, usamos como está
+    connectionString = connectionStringUrl;
 }
 // --- FIM DA MUDANÇA ---
 
@@ -55,9 +56,9 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
 
-// --- MUDANÇA (Usa a nossa string convertida) ---
+// --- MUDANÇA (Usa a nossa string final) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString)); // <-- Usa a string que CONVERTEMOS
+    options.UseNpgsql(connectionString)); // <-- Usa a string que processámos
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -106,7 +107,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors(myAllowSpecificOrigins);
 app.UseHttpsRedirection();
-
+// app.UseAuthorization(); (Removido)
 
 app.MapControllers();
 app.Run();
+
