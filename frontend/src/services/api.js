@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://knewin-api.onrender.com/api', // Confira sua porta
+  baseURL: 'https://projeto04.onrender.com/api', // Confira sua porta
 });
 
 // Empresas
