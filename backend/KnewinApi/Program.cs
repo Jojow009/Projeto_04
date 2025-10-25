@@ -10,7 +10,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
-// --- MUDANÇA (Conversor de Conexão Robusto) ---
+// --- MUDANÇA (Conversor de Conexão Super Robusto) ---
 // 1. Pega a string de conexão (VEM DO RENDER ENV VAR)
 var connectionStringUrl = builder.Configuration.GetConnectionString("DefaultConnection");
 string connectionString;
@@ -24,15 +24,20 @@ if (!string.IsNullOrEmpty(connectionStringUrl) && connectionStringUrl.StartsWith
     var dbUser = userInfo[0];
     var dbPass = userInfo[1];
     var dbHost = databaseUri.Host;
-    var dbPort = databaseUri.Port;
+    
+    // --- CORREÇÃO DA PORTA ---
+    // Se a porta não for especificada na URL, databaseUri.Port retorna -1.
+    // Nesse caso, usamos a porta padrão do Postgres (5432).
+    var dbPort = databaseUri.Port > 0 ? databaseUri.Port : 5432;
+    // --- FIM DA CORREÇÃO ---
+
     var dbName = databaseUri.LocalPath.TrimStart('/');
 
     connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPass};";
 }
 else
 {
-    // Se não encontrou a variável do Render, vai usar a string local (Host=...) do appsettings.json
-    // Se essa também falhar (como agora), 'connectionString' fica null e o app falha.
+    // É a string local (Host=...) ou está vazia, usamos como está
     connectionString = connectionStringUrl;
 }
 // --- FIM DA MUDANÇA ---
@@ -112,3 +117,4 @@ app.UseHttpsRedirection();
 
 app.MapControllers();
 app.Run();
+
